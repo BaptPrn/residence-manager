@@ -10,9 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 0) do
+ActiveRecord::Schema.define(version: 2019_03_25_145147) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
+  create_table "stays", force: :cascade do |t|
+    t.date "start_date"
+    t.date "end_date"
+    t.bigint "tenant_id"
+    t.bigint "studio_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["studio_id"], name: "index_stays_on_studio_id"
+    t.index ["tenant_id"], name: "index_stays_on_tenant_id"
+  end
+
+  create_table "studios", force: :cascade do |t|
+    t.string "name"
+    t.integer "monthly_price"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "tenants", force: :cascade do |t|
+    t.string "email"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_foreign_key "stays", "studios"
+  add_foreign_key "stays", "tenants"
 end
