@@ -1,0 +1,16 @@
+<h1>Séjour du <%= l @stay.start_date, format: :long %> au <%= l @stay.end_date, format: :long %></h1>
+
+<h3><u>Contact du locataire:</u> <%= @stay.tenant.email %></h3>
+
+<h3><u>Appartement:</u> <%= @stay.studio.name %></h3>
+
+<h3><u>Loyer mensuel:</u> <%= @stay.studio.monthly_price %> €</h3>
+
+<h3><u>Prix total:</u> <%= @stay.total_price %> €</h3>
+
+<h3><u>Échéancier:</u></h3>
+<ul>
+  <% @payments.each do |payment| %>
+    <li> <b><%= (l payment.date, format: :month_and_year).capitalize %>:</b> <%= payment.price %> € </li>
+  <% end %>
+</ul>
