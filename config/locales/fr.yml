@@ -1,0 +1,4 @@
+fr:
+  date:
+    formats:
+      month_and_year: "%B %Y"
