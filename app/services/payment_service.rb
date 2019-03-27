@@ -1,9 +1,19 @@
 class PaymentService
-  def initialize(stay:)
-    @stay = stay
-    @first_day = stay.start_date
-    @last_day = stay.end_date
-    @studio_monthly_price = stay.studio.monthly_price
+  def initialize(stay: nil, discount: nil)
+    if stay.present?
+      @stay = stay
+      @first_day = stay.start_date
+      @last_day = stay.end_date
+      @payment_monthly_value = stay.studio.monthly_price
+      @source = 'rent'
+    else
+      @stay = discount.stay
+      @discount = discount
+      @first_day = discounted_nights.first
+      @last_day = discounted_nights.last
+      @payment_monthly_value = - (@stay.studio.monthly_price * discount.value_in_percentage).to_i
+      @source = 'discount'
+    end
   end
 
   def create_monthly_payments # I chose not to work on the date range to avoid creating and manipulating a potentially big array, although it could have been clearer/easier
@@ -21,7 +31,9 @@ class PaymentService
       until current_payment_date == @last_day.beginning_of_month
         @stay.payments.create(
           date: current_payment_date,
-          price: @studio_monthly_price
+          price: @payment_monthly_value,
+          source: @source,
+          related_rent_payment: @stay.payments.rent.find_by(date: current_payment_date)
         )
         current_payment_date += 1.month
       end
@@ -36,10 +48,16 @@ class PaymentService
 
   private
 
+  def discounted_nights
+    @_discounted_nights ||= (@stay.start_date .. @stay.end_date).to_a & (@discount.start_date .. @discount.end_date).to_a
+  end
+
   def create_prorated_payment_between(payment_start_date:, payment_end_date:)
     @stay.payments.create(
       date: payment_start_date.beginning_of_month,
-      price: calculate_prorated_price(payment_start_date, payment_end_date)
+      price: calculate_prorated_price(payment_start_date, payment_end_date),
+      source: @source,
+      related_rent_payment: @stay.payments.rent.find_by(date: payment_start_date.beginning_of_month)
     )
   end
 
@@ -47,6 +65,6 @@ class PaymentService
     number_of_nights = (payment_end_date - payment_start_date).to_i
     nights_in_month = payment_start_date.end_of_month.day
 
-    (number_of_nights.to_f / nights_in_month.to_f * @studio_monthly_price.to_f).to_i # I assume we do not want to deal with cents but I may be wrong
+    (number_of_nights.to_f / nights_in_month.to_f * @payment_monthly_value.to_f).to_i # I assume we do not want to deal with cents but I may be wrong
   end
 end

@@ -6,11 +6,28 @@
 
 <h3><u>Loyer mensuel:</u> <%= @stay.studio.monthly_price %> €</h3>
 
-<h3><u>Prix total:</u> <%= @stay.total_price %> €</h3>
+<h3><u>Réductions</u>:</h3>
+<ul>
+  <% @stay.discounts.each do |discount| %>
+    <li>
+      Du <b><%= l discount.start_date, format: :long %></b> au <b><%= l discount.end_date, format: :long %></b>: <%= discount.discount_percentage_value %> %.
+    </li>
+  <% end %>
+</ul>
+
+<h3>
+  <u>Prix total:</u> <%= @stay.total_price %> € (dont <%= - @stay.total_discount_amount %> € de réduction)
+</h3>
 
 <h3><u>Échéancier:</u></h3>
 <ul>
   <% @payments.each do |payment| %>
-    <li> <b><%= (l payment.date, format: :month_and_year).capitalize %>:</b> <%= payment.price %> € </li>
+    <li>
+      <b><%= (l payment.date, format: :month_and_year).capitalize %>: </b>
+      <%= payment.value_after_discount %> €
+      <% payment.related_discount_payments.each do |discount_payment| %>
+        (dont <%= - payment.discount_value %> € de réduction)
+      <% end %>
+    </li>
   <% end %>
 </ul>
